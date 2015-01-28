@@ -25,7 +25,7 @@
     }
 
     gaia-dom-tree {
-      margin-top: 24px;
+      margin: 24px 0;
     }
   </style>
 </head>
@@ -36,10 +36,12 @@
     <footer>My Footer</footer>
   </div>
   <hr/>
+  <gaia-dom-tree></gaia-dom-tree>
+  <hr/>
 <script>
-  (function() {
+  window.onload = function() {
     var DomTree = window['gaia-dom-tree'];
-    var tree = new DomTree();
+    var tree = document.querySelector('gaia-dom-tree');
     var root = document.getElementById('root');
     var selected;
 
@@ -57,9 +59,7 @@
     root.addEventListener('click', (e) => {
       tree.select(e.target);
     });
-
-    document.body.appendChild(tree);
-  })();
+  };
 </script>
 </body>
 </html>

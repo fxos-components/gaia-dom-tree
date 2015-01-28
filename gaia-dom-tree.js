@@ -147,8 +147,8 @@ module.exports = component.register('gaia-dom-tree', {
       }
 
       .inner {
-        color: #eee;
-        background: #333;
+        color: var(--text-color);
+        background: var(--background);
         font-family: Consolas,Monaco,"Andale Mono",monospace;
         line-height: 1;
         -moz-user-select: none;
@@ -182,12 +182,12 @@ module.exports = component.register('gaia-dom-tree', {
        */
 
       li.selected > h3 {
-        background: rgba(255,255,255,0.05);
+        background: var(--background-plus)
       }
 
       li.text > h3 {
         font-style: italic;
-        color: #777;
+        opacity: 0.4;
       }
 
       /** Node Icon
@@ -200,7 +200,7 @@ module.exports = component.register('gaia-dom-tree', {
         text-align: center;
         width: 1.4em;
         font-size: 0.8em;
-        color: #666
+        opacity: 0.2
       }
 
       li.element.has-children > h3:before {
@@ -227,7 +227,7 @@ module.exports = component.register('gaia-dom-tree', {
 
       li > ul {
         display: none;
-        padding-left: 0.8em;
+        -moz-padding-start: 0.8em;
       }
 
       /**
