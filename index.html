@@ -20,8 +20,14 @@
       margin-bottom: 24px;
     }
 
-    .selected {
-      box-shadow: 0 0 5px 2px var(--highlight-color);
+    #outline {
+      position: absolute;
+      left: -10px;
+      top: -10px;
+      z-index: 999999;
+      border: dotted 2px var(--highlight-color);
+      box-sizing: border-box;
+      pointer-events: none;
     }
 
     gaia-dom-tree {
@@ -38,11 +44,13 @@
   <hr/>
   <gaia-dom-tree></gaia-dom-tree>
   <hr/>
+  <div id="outline"></div>
 <script>
   window.onload = function() {
     var DomTree = window['gaia-dom-tree'];
     var tree = document.querySelector('gaia-dom-tree');
-    var root = document.getElementById('root');
+    var outline = document.querySelector('#outline');
+    var root = document.documentElement;
     var selected;
 
     tree.setRoot(root);
@@ -53,12 +61,21 @@
       selected = tree.selectedNode;
       if (prev) prev.classList.remove('selected');
       if (selected.nodeType == 3) selected = selected.parentNode;
-      selected.classList.add('selected');
+      outlineElement(selected);
     });
 
     root.addEventListener('click', (e) => {
+      if (e.target === tree) return;
       tree.select(e.target);
     });
+
+    function outlineElement(el) {
+      var rects = el.getBoundingClientRect();
+      outline.style.width = rects.width + 'px';
+      outline.style.height = rects.height + 'px';
+      outline.style.left = rects.left + 'px';
+      outline.style.top = rects.top + 'px';
+    }
   };
 </script>
 </body>
