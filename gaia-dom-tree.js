@@ -13,6 +13,11 @@ var component = require('gaia-component');
  */
 var debug = 1 ? console.log.bind(console) : function() {};
 
+const NODE_TYPES = {
+  1: 'element',
+  3: 'text'
+};
+
 /**
  * Register the element.
  *
@@ -32,11 +37,13 @@ module.exports = component.register('gaia-dom-tree', {
     debug('created');
     this.setupShadowRoot();
     this.els = {
-      inner: this.shadowRoot.querySelector('.inner')
+      inner: this.shadowRoot.querySelector('.inner'),
+      tree: this.shadowRoot.querySelector('.tree')
     };
 
+    this.selectedTreeNode = null;
     this.selectedNode = null;
-
+    this.treeMap = new Map();
     this.els.inner.addEventListener('click', e => this.onInnerClick(e));
   },
 
@@ -46,28 +53,55 @@ module.exports = component.register('gaia-dom-tree', {
   },
 
   render: function() {
-    var html = toHtml(this.root);
-    this.els.inner.innerHTML = html;
-    debug('rendered', html);
+    var tree = this.createTree(this.root);
+    this.els.tree.innerHTML = '';
+    this.els.tree.appendChild(tree);
+    debug('rendered');
+  },
+
+  select: function(el) {
+    debug('select', el);
+    var treeNode = this.treeMap.get(el);
+    if (!treeNode) return;
+    this.selectNode(treeNode);
+    this.expandNode(treeNode);
   },
 
   onInnerClick: function(e) {
     debug('inner click', e);
-    var nodeString = e.target.closest('.node-string');
-    if (nodeString) this.onNodeStringClick(nodeString);
+    var nodeTitle = e.target.closest('h3');
+    if (nodeTitle) this.onNodeTitleClick(nodeTitle);
   },
 
-  onNodeStringClick: function(el) {
-    var node = el.closest('.node');
-    node.classList.toggle('expanded');
+  onNodeTitleClick: function(el) {
+    var node = el.closest('li');
+    this.toggleExpanded(node);
     this.selectNode(node);
   },
 
-  selectNode: function(el) {
-    var previous = this.selectedNode;
+  expandNode: function(node) {
+    debug('expand node', node);
+    node.classList.add('expanded');
+    var parent = node.parentNode.closest('li');
+    if (parent) this.expandNode(parent);
+  },
+
+  contractNode: function(node) {
+    node.classList.remove('expanded');
+  },
+
+  toggleExpanded: function(node) {
+    var expanded = node.classList.contains('expanded');
+    if (expanded) this.contractNode(node);
+    else this.expandNode(node);
+  },
+
+  selectNode: function(treeNode) {
+    var previous = this.selectedTreeNode;
     if (previous) previous.classList.remove('selected');
-    el.classList.add('selected');
-    this.selectedNode = el;
+    treeNode.classList.add('selected');
+    this.selectedTreeNode = treeNode;
+    this.selectedNode = treeNode.sourceNode;
     this.despatch('selected');
   },
 
@@ -75,86 +109,155 @@ module.exports = component.register('gaia-dom-tree', {
     this.dispatchEvent(new Event('selected'));
   },
 
+  createTree: function(node) {
+    var treeNode = document.createElement('li');
+    var title = document.createElement('h3');
+    var children = document.createElement('ul');
+    var type = NODE_TYPES[node.nodeType];
+    var childNodes = node.childNodes;
+    var stringified = stringify[type](node);
+
+    if (!stringified) return;
+
+    title.innerHTML = stringified;
+
+    treeNode.appendChild(title);
+    treeNode.appendChild(children);
+    treeNode.sourceNode = node;
+    treeNode.classList.add(type);
+
+    // Flag when a node has children
+    treeNode.classList.toggle('has-children', !!childNodes.length);
+
+    [].map.call(childNodes, (node) => this.createTree(node))
+      .filter(node => !!node)
+      .forEach(children.appendChild, children);
+
+    this.treeMap.set(node, treeNode);
+    return treeNode;
+  },
+
   template: `
     <style>
-      .inner {
-        padding: 0.6em 0.3em;
 
+      * { box-sizing: border-box; }
+
+      :host {
+        display: block;
+      }
+
+      .inner {
         color: #eee;
         background: #333;
         font-family: Consolas,Monaco,"Andale Mono",monospace;
+        line-height: 1;
         -moz-user-select: none;
         cursor: default;
       }
 
-      .node.collapsed .children {
-        display: none;
+      .tree {
+        overflow: auto;
       }
 
-      .node-string {
-        padding: 0em 0.2em;
+      ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
       }
 
-      .node-string:before {
-        content: '▶';
+      /** Node Title
+       ---------------------------------------------------------*/
+
+      h3 {
         display: inline-block;
-        vertical-align: middle;
-        padding-right: 0.5em;
-        font-size: 0.7em;
-        color: #777
+        width: 100%;
+        margin: 0;
+        padding: 0.2em 0.2em;
+        font: inherit;
+        white-space: nowrap;
       }
 
-      .expanded > .node-string:before {
+      /**
+       * .selected
+       */
+
+      li.selected > h3 {
+        background: rgba(255,255,255,0.05);
+      }
+
+      li.text > h3 {
+        font-style: italic;
+        color: #777;
+      }
+
+      /** Node Icon
+       ---------------------------------------------------------*/
+
+      li > h3:before {
+        content: '';
+        display: inline-block;
+        vertical-align: to;
+        text-align: center;
+        width: 1.4em;
+        font-size: 0.8em;
+        color: #666
+      }
+
+      li.element.has-children > h3:before {
+        content: '▶';
+      }
+
+      /**
+       * .expanded
+       */
+
+      li.expanded > h3:before {
         transform: rotate(90deg);
       }
 
-      .selected > .node-string {
-        background: rgba(255,255,255,0.05);
-      }
+      /** Node Attributes
+       ---------------------------------------------------------*/
 
-      .node-string .attrs {
-      }
-
-      .node-string .attr-value {
+      .attr-value {
         color: var(--highlight-color);
       }
 
-      .node-string:active {
-        background: rgba(255,255,255,0.05);
-      }
+      /** Children
+       ---------------------------------------------------------*/
 
-      .node > .children {
+      li > ul {
         display: none;
         padding-left: 0.8em;
       }
 
-      .node.expanded > .children {
+      /**
+       * .expanded
+       */
+
+      li.expanded > ul {
         display: block;
       }
 
     </style>
-    <div class="inner"></div>
+    <div class="inner">
+      <ul class="tree"></div>
+    </div>
   `
 });
 
-function toHtml(node) {
-  var stringified = stringify(node);
-  var children = [].map.call(node.children, toHtml).join('');
-  var result = `<div class="node">
-    <div class="node-string">${stringified}</div>
-    <div class="children">
-      ${children}
-    </div>
-  </div>`;
+var stringify = {
+  element: function(el) {
+    var tagName = el.tagName.toLowerCase();
+    var attrs = stringifyAttrs(el.attributes);
+    return `&lt;${tagName}<span class="attrs">${attrs}</span>&gt;`;
+  },
 
-  return result;
-}
-
-function stringify(node) {
-  var tagName = node.tagName.toLowerCase();
-  var attrs = stringifyAttrs(node.attributes);
-  return `&lt;${tagName}<span class="attrs">${attrs}</span>&gt;`;
-}
+  text: function(textNode) {
+    var value = textNode.nodeValue.trim();
+    debug('stringify textNode', value);
+    return value;
+  }
+};
 
 function stringifyAttrs(attrs) {
   return [].map.call(attrs, attr => {

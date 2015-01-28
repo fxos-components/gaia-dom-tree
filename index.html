@@ -10,26 +10,52 @@
   <script src="bower_components/gaia-icons/gaia-icons.js"></script>
   <script src="bower_components/gaia-component/gaia-component.js"></script>
   <script src="gaia-dom-tree.js"></script>
+  <style>
+
+    body {
+      padding: 56px 24px 24px;
+    }
+
+    #root {
+      margin-bottom: 24px;
+    }
+
+    .selected {
+      box-shadow: 0 0 5px 2px var(--highlight-color);
+    }
+
+    gaia-dom-tree {
+      margin-top: 24px;
+    }
+  </style>
 </head>
 <body>
   <gaia-theme-selector></gaia-theme-selector>
-  <div id="root">
-    <header id="my-header">My header</header>
-    <div class="main">
-      <p>lorem ipsum dolor</p>
+  <div id="root"><header id="my-header">My header</header><div class="main"><p>lorem ipsum dolor</p><button>My button</button>
     </div>
     <footer>My Footer</footer>
   </div>
+  <hr/>
 <script>
   (function() {
     var DomTree = window['gaia-dom-tree'];
     var tree = new DomTree();
     var root = document.getElementById('root');
+    var selected;
+
     tree.setRoot(root);
     tree.render();
 
     tree.addEventListener('selected', () => {
-      console.log('SELECTED');
+      var prev = selected;
+      selected = tree.selectedNode;
+      if (prev) prev.classList.remove('selected');
+      if (selected.nodeType == 3) selected = selected.parentNode;
+      selected.classList.add('selected');
+    });
+
+    root.addEventListener('click', (e) => {
+      tree.select(e.target);
     });
 
     document.body.appendChild(tree);
