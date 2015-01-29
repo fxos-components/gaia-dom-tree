@@ -70,6 +70,7 @@ module.exports = component.register('gaia-dom-tree', {
 
   onInnerClick: function(e) {
     debug('inner click', e);
+    if (e.type === 'contextmenu') e.preventDefault();
     var nodeTitle = e.target.closest('h3');
     if (nodeTitle) this.onNodeTitleClick(e, nodeTitle);
   },
