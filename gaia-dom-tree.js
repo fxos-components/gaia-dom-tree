@@ -58,6 +58,25 @@ module.exports = component.register('gaia-dom-tree', {
     this.els.tree.innerHTML = '';
     this.els.tree.appendChild(tree);
     debug('rendered');
+    this.setMutationObserver();
+  },
+
+  setMutationObserver: function() {
+    if (this.observer) {
+      return;
+    }
+
+    this.observer = new MutationObserver((mutations) => {
+      this.render();
+    });
+
+    var config = {
+      childList: true,
+      attributes: true,
+      characterData: true,
+      subtree: true
+    };
+    this.observer.observe(this.root, config);
   },
 
   select: function(el) {
