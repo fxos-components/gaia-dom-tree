@@ -91,13 +91,13 @@ module.exports = component.register('gaia-dom-tree', {
     debug('inner click', e);
     if (e.type === 'contextmenu') e.preventDefault();
     var nodeTitle = e.target.closest('h3');
-    if (nodeTitle) this.onNodeTitleClick(e, nodeTitle);
+    if (nodeTitle) this.onNodeTitleClick(nodeTitle, e);
   },
 
-  onNodeTitleClick: function(e, el) {
+  onNodeTitleClick: function(el, e) {
     var node = el.closest('li');
     this.toggleExpanded(node);
-    this.selectNode(e, node);
+    this.selectNode(node, e);
   },
 
   expandNode: function(node) {
@@ -117,16 +117,16 @@ module.exports = component.register('gaia-dom-tree', {
     else this.expandNode(node);
   },
 
-  selectNode: function(e, treeNode) {
+  selectNode: function(treeNode, e) {
     var previous = this.selectedTreeNode;
     if (previous) previous.classList.remove('selected');
     treeNode.classList.add('selected');
     this.selectedTreeNode = treeNode;
     this.selectedNode = treeNode.sourceNode;
-    this.despatch(e.type === 'click' ? 'selected' : 'longpressed');
+    this.dispatch((e && e.type === 'contextmenu') ? 'longpressed' : 'click');
   },
 
-  despatch: function(name) {
+  dispatch: function(name) {
     this.dispatchEvent(new Event(name));
   },
 
