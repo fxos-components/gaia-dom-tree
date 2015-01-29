@@ -45,6 +45,7 @@ module.exports = component.register('gaia-dom-tree', {
     this.selectedNode = null;
     this.treeMap = new Map();
     this.els.inner.addEventListener('click', e => this.onInnerClick(e));
+    this.els.inner.addEventListener('contextmenu', e => this.onInnerClick(e));
   },
 
   setRoot: function(el) {
@@ -70,13 +71,13 @@ module.exports = component.register('gaia-dom-tree', {
   onInnerClick: function(e) {
     debug('inner click', e);
     var nodeTitle = e.target.closest('h3');
-    if (nodeTitle) this.onNodeTitleClick(nodeTitle);
+    if (nodeTitle) this.onNodeTitleClick(e, nodeTitle);
   },
 
-  onNodeTitleClick: function(el) {
+  onNodeTitleClick: function(e, el) {
     var node = el.closest('li');
     this.toggleExpanded(node);
-    this.selectNode(node);
+    this.selectNode(e, node);
   },
 
   expandNode: function(node) {
@@ -96,17 +97,17 @@ module.exports = component.register('gaia-dom-tree', {
     else this.expandNode(node);
   },
 
-  selectNode: function(treeNode) {
+  selectNode: function(e, treeNode) {
     var previous = this.selectedTreeNode;
     if (previous) previous.classList.remove('selected');
     treeNode.classList.add('selected');
     this.selectedTreeNode = treeNode;
     this.selectedNode = treeNode.sourceNode;
-    this.despatch('selected');
+    this.despatch(e.type === 'click' ? 'selected' : 'longpressed');
   },
 
   despatch: function(name) {
-    this.dispatchEvent(new Event('selected'));
+    this.dispatchEvent(new Event(name));
   },
 
   createTree: function(node) {
