@@ -11,7 +11,7 @@ var component = require('gaia-component');
  *
  * @type {Function}
  */
-var debug = 1 ? console.log.bind(console) : function() {};
+var debug = 0 ? console.log.bind(console) : function() {};
 
 const NODE_TYPES = {
   1: 'element',
@@ -67,7 +67,14 @@ module.exports = component.register('gaia-dom-tree', {
     }
 
     this.observer = new MutationObserver((mutations) => {
-      this.render();
+      // Only re-render if a mutation occurred outside of
+      // the <gaia-dom-tree> shadow root.
+      for (var i = mutations.length - 1; i >= 0; i--) {
+        if (!this.shadowRoot.contains(mutations[i].target)) {
+          this.render();
+          return;
+        }
+      }
     });
 
     var config = {
@@ -135,8 +142,12 @@ module.exports = component.register('gaia-dom-tree', {
     var title = document.createElement('h3');
     var children = document.createElement('ul');
     var type = NODE_TYPES[node.nodeType];
-    var childNodes = node.childNodes;
     var stringified = stringify[type](node);
+
+    // Exclude <gaia-dom-tree> from being seen as
+    // part of the DOM tree.
+    var childNodes = [].filter.call(node.childNodes,
+      (node) => node.nodeName !== 'GAIA-DOM-TREE');
 
     if (!stringified) return;
 
@@ -150,7 +161,7 @@ module.exports = component.register('gaia-dom-tree', {
     // Flag when a node has children
     treeNode.classList.toggle('has-children', !!childNodes.length);
 
-    [].map.call(childNodes, (node) => this.createTree(node))
+    childNodes.map((node) => this.createTree(node))
       .filter(node => !!node)
       .forEach(children.appendChild, children);
 
