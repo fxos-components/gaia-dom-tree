@@ -55,6 +55,15 @@ suite('GaiaHeader', function() {
     assert.isFalse(nodes[0].classList.contains('selected'));
   });
 
+  test('Should filter nodes from being rendered', function() {
+    var treeNodes = this.tree.shadowRoot.querySelectorAll('li');
+    assert.equal(treeNodes.length, 7);
+
+    this.tree.filter = 'div.main';
+    treeNodes = this.tree.shadowRoot.querySelectorAll('li');
+    assert.equal(treeNodes.length, 4);
+  });
+
   suite('GaiaDomTree#select()', function() {
     test('It selects a tree node when passed the corresponding dom node', function() {
       var node = this.dom.querySelector('header');

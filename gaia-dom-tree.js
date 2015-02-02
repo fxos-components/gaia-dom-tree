@@ -41,11 +41,25 @@ module.exports = component.register('gaia-dom-tree', {
       tree: this.shadowRoot.querySelector('.tree')
     };
 
+    this.filter = this.getAttribute('filter');
+
     this.selectedTreeNode = null;
     this.selectedNode = null;
     this.treeMap = new Map();
     this.els.inner.addEventListener('click', e => this.onInnerClick(e));
     this.els.inner.addEventListener('contextmenu', e => this.onInnerClick(e));
+  },
+
+  attrs: {
+    filter: {
+      get: function() { return this._filter; },
+      set: function(value) {
+        if (value === this._filter) { return; }
+        this._filter = value;
+        this.setAttr('filter', value);
+        this.render();
+      }
+    }
   },
 
   setRoot: function(el) {
@@ -54,6 +68,8 @@ module.exports = component.register('gaia-dom-tree', {
   },
 
   render: function() {
+    if (!this.root) { return; }
+
     var tree = this.createTree(this.root);
     this.els.tree.innerHTML = '';
     this.els.tree.appendChild(tree);
@@ -146,8 +162,15 @@ module.exports = component.register('gaia-dom-tree', {
 
     // Exclude <gaia-dom-tree> from being seen as
     // part of the DOM tree.
-    var childNodes = [].filter.call(node.childNodes,
-      (node) => node.nodeName !== 'GAIA-DOM-TREE');
+    var childNodes = [].filter.call(node.childNodes, (node) => {
+      return node.nodeType === Node.TEXT_NODE || (
+        node.nodeType === Node.ELEMENT_NODE &&
+        node.nodeName !== 'GAIA-DOM-TREE' && (
+          (this.filter && !node.matches(this.filter)) ||
+          !this.filter
+        )
+      );
+    });
 
     if (!stringified) return;
 
