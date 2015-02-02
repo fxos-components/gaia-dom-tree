@@ -18,6 +18,13 @@ const NODE_TYPES = {
   3: 'text'
 };
 
+const OBSERVER_CONFIG = {
+  childList: true,
+  attributes: true,
+  characterData: true,
+  subtree: true
+};
+
 /**
  * Register the element.
  *
@@ -77,6 +84,14 @@ module.exports = component.register('gaia-dom-tree', {
     this.setMutationObserver();
   },
 
+  watchChanges: function() {
+    this.observer.observe(this.root, OBSERVER_CONFIG);
+  },
+
+  unwatchChanges: function() {
+    this.observer.disconnect();
+  },
+
   setMutationObserver: function() {
     if (this.observer) {
       return;
@@ -93,13 +108,7 @@ module.exports = component.register('gaia-dom-tree', {
       }
     });
 
-    var config = {
-      childList: true,
-      attributes: true,
-      characterData: true,
-      subtree: true
-    };
-    this.observer.observe(this.root, config);
+    this.watchChanges();
   },
 
   select: function(el) {
