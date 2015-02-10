@@ -217,10 +217,13 @@ module.exports = component.register('gaia-dom-tree', {
         line-height: 1;
         -moz-user-select: none;
         cursor: default;
+        overflow: auto;
+        height: 100%;
       }
 
-      .tree {
-        overflow: auto;
+      ul.tree {
+        padding: 0.5rem;
+        height: 100%;
       }
 
       ul {
