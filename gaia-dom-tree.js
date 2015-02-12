@@ -55,6 +55,53 @@ module.exports = component.register('gaia-dom-tree', {
     this.treeMap = new Map();
     this.els.inner.addEventListener('click', e => this.onInnerClick(e));
     this.els.inner.addEventListener('contextmenu', e => this.onInnerClick(e));
+
+    // <really-ugly-terrible-scroll-hack>
+    this.addEventListener('touchstart', onTouchStart);
+
+    var inner = this.els.inner;
+    var scrolling = false;
+
+    var lastOffsetX;
+    var lastOffsetY;
+
+    function onTouchStart(evt) {
+      if (scrolling) { return; }
+
+      var touch = evt.touches[0];
+      lastOffsetX = touch.pageX;
+      lastOffsetY = touch.pageY;
+
+      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchend', onTouchEnd);
+
+      scrolling = true;
+    }
+
+    function onTouchMove(evt) {
+      if (!scrolling) { return; }
+
+      var touch = evt.touches[0];
+      var deltaX = lastOffsetX - touch.pageX;
+      var deltaY = lastOffsetY - touch.pageY;
+
+      window.requestAnimationFrame(() => {
+        inner.scrollBy(deltaX, deltaY);
+      });
+
+      lastOffsetX = touch.pageX;
+      lastOffsetY = touch.pageY;
+    }
+
+    function onTouchEnd(evt) {
+      if (!scrolling) { return; }
+
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+
+      scrolling = false;
+    }
+    // </really-ugly-terrible-scroll-hack>
   },
 
   attrs: {
@@ -217,7 +264,7 @@ module.exports = component.register('gaia-dom-tree', {
         line-height: 1;
         -moz-user-select: none;
         cursor: default;
-        overflow: auto;
+        overflow: hidden; /* needed for <really-ugly-terrible-scroll-hack> */
         height: 100%;
       }
 
