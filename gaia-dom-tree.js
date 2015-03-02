@@ -93,7 +93,7 @@ module.exports = component.register('gaia-dom-tree', {
 
   onNodeTitleClick: function(el, e) {
     var node = el.closest('li');
-    this.toggleExpanded(node);
+    if (e.type === 'click') this.toggleExpanded(node);
     this.selectNode(node, e);
   },
 
