@@ -18,13 +18,6 @@ const NODE_TYPES = {
   3: 'text'
 };
 
-const OBSERVER_CONFIG = {
-  childList: true,
-  attributes: true,
-  characterData: true,
-  subtree: true
-};
-
 /**
  * Register the element.
  *
@@ -81,34 +74,6 @@ module.exports = component.register('gaia-dom-tree', {
     this.els.tree.innerHTML = '';
     this.els.tree.appendChild(tree);
     debug('rendered');
-    this.setMutationObserver();
-  },
-
-  watchChanges: function() {
-    this.observer.observe(this.root, OBSERVER_CONFIG);
-  },
-
-  unwatchChanges: function() {
-    this.observer.disconnect();
-  },
-
-  setMutationObserver: function() {
-    if (this.observer) {
-      return;
-    }
-
-    this.observer = new MutationObserver((mutations) => {
-      // Only re-render if a mutation occurred outside of
-      // the <gaia-dom-tree> shadow root.
-      for (var i = mutations.length - 1; i >= 0; i--) {
-        if (!this.shadowRoot.contains(mutations[i].target)) {
-          this.render();
-          return;
-        }
-      }
-    });
-
-    this.watchChanges();
   },
 
   select: function(el) {
