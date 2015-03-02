@@ -191,6 +191,10 @@ module.exports = component.register('gaia-dom-tree', {
         height: 100%;
       }
 
+      ul.tree > li:first-child {
+        padding-bottom: 1rem;
+      }
+
       ul {
         list-style-type: none;
         padding: 0;
