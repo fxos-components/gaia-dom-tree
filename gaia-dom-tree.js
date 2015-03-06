@@ -68,12 +68,12 @@ module.exports = component.register('gaia-dom-tree', {
   },
 
   render: function() {
-    if (!this.root) { return; }
-
-    var tree = this.createTree(this.root);
     this.els.tree.innerHTML = '';
-    this.els.tree.appendChild(tree);
-    debug('rendered');
+    if (this.root) {
+      var tree = this.createTree(this.root);
+      this.els.tree.appendChild(tree);
+      debug('rendered');
+    }
   },
 
   select: function(el) {
