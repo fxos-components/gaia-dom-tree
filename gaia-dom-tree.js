@@ -232,7 +232,6 @@ module.exports = component.register('gaia-dom-tree', {
       li > h3:before {
         content: '';
         display: inline-block;
-        vertical-align: to;
         text-align: center;
         width: 1.4em;
         font-size: 0.8em;
